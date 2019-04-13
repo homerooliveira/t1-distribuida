@@ -7,7 +7,7 @@ public class HelloRecv {
 
     public static void main(String[] args) {
 
-        new Thread(HelloRecv::listenGroup).start();
+//        new Thread(HelloRecv::listenGroup).start();
 
         new Thread(() -> {
 
