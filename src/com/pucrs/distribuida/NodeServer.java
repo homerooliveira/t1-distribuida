@@ -1,9 +1,12 @@
 package com.pucrs.distribuida;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.server.ExportException;
 
 public class NodeServer {
@@ -16,25 +19,29 @@ public class NodeServer {
     private final String superNodeIp;
     private final int superNodePort;
     private final boolean isDebug;
+    private final String path;
 
     public static void main(String[] args) {
         String ip = args[0];
         String superNodeIp = args[1];
         int superNodePort = Integer.parseInt(args[2]);
         boolean isDebug = Boolean.parseBoolean(args[3]);
+        String path = args[4];
 
-        new NodeServer(ip, superNodeIp, superNodePort, isDebug).run();
+        new NodeServer(ip, superNodeIp, superNodePort, isDebug, path).run();
     }
 
-    public  NodeServer(String ip, String superNodeIp, int superNodePort, boolean isDebug) {
+    public  NodeServer(String ip, String superNodeIp, int superNodePort, boolean isDebug, String path) {
         this.ip = ip;
         this.superNodeIp = superNodeIp;
         this.superNodePort = superNodePort;
         this.isDebug = isDebug;
+        this.path = path;
     }
 
 
     public void run() {
+        sendFiles();
         new Thread(this::listen).start();
     }
 
@@ -89,5 +96,18 @@ public class NodeServer {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+    }
+
+    void readAllFiles() throws IOException {
+        Files.walk(Paths.get(path))
+                .filter(Files::isRegularFile)
+                .map(path1 -> {
+                    try {
+                        Files.lines(path1);
+                        return  "";
+                    } catch (IOException e) {
+                        return "";
+                    }
+                });
     }
 }
