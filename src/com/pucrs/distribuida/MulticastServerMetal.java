@@ -3,8 +3,12 @@ package com.pucrs.distribuida;
 import java.io.IOException;
 import java.net.*;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class MulticastServerMetal {
+
+    private static final String IDENTIFIER = UUID.randomUUID().toString();
+
     public static void main(String[] args) throws IOException {
         new Thread(() -> {
             MulticastSocket socket = null;
@@ -17,6 +21,7 @@ public class MulticastServerMetal {
                     DatagramPacket pacote = new DatagramPacket(entrada, entrada.length);
                     socket.receive(pacote);
                     String recebido = new String(pacote.getData(), 0, pacote.getLength());
+                    if (recebido.contains(IDENTIFIER)) { return; }
                     System.out.println("Received: " + recebido);
                 }
             } catch (IOException e) {
