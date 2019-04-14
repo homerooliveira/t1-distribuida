@@ -1,5 +1,7 @@
 package com.pucrs.distribuida;
 
+import com.google.gson.Gson;
+
 import java.io.IOException;
 import java.net.*;
 import java.util.UUID;
@@ -31,14 +33,19 @@ public class MulticastServerMetal {
             InetAddress grupo = InetAddress.getByName("230.0.0.1");
             socket.joinGroup(grupo);
             while (true) {
-                byte[] entrada = new byte[256];
+                byte[] entrada = new byte[512];
                 DatagramPacket pacote = new DatagramPacket(entrada, entrada.length);
                 socket.receive(pacote);
                 String recebido = new String(pacote.getData(), 0, pacote.getLength());
                 if (recebido.contains(IDENTIFIER)) { return; }
-                int status = 4;
-                if (status == MulticastServerMetal.RECEIVING_FILES_FROM_SUPER_NODE) {
-                    // atualiza filmes
+
+                Gson gson = new Gson();
+                Response response = gson.fromJson(recebido, Response.class);
+
+                int status = response.getStatus();
+
+                if (status == MulticastServerMetal.RECEIVING_FILES_FROM_NODE) {
+                    System.out.println(response.getFiles());
                 } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_SUPER_NODE) {
                     sendMoviesToSuperNodes();
                 }
