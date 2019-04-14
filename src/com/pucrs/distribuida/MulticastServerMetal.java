@@ -97,7 +97,7 @@ public class MulticastServerMetal {
                 Response response = gson.fromJson(receivedMessage, Response.class);
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_NODE) {
-                    response.getFiles();
+                    response.getNode().getFiles();
                     // Recebendo filmes que o nodo possui
                 } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE ) {
                     sendMoviesRequestToSuperNodes();
