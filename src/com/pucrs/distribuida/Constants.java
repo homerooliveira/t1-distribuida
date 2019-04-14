@@ -15,4 +15,5 @@ public class Constants {
 
     static final int SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE = 5;
     static final int NODE_SEND_LIFE_SIGNAL_TO_NODE_SUPER_NODE = 5;
+
 }

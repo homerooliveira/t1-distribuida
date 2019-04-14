@@ -2,6 +2,7 @@ package com.pucrs.distribuida;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.tools.classfile.ConstantPool;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -73,7 +74,7 @@ public class NodeServer {
 
                 Response response = new Gson().fromJson(receivedMessage, Response.class);
 
-                if(response.getStatus() == 6) {
+                if(response.getStatus() == Constants.NODE_SEND_REQUEST_TO_SUPER_NODE) {
                     System.out.println("Parse da lista");
                 } else if(response.getStatus() == 7) {
                     System.out.println("recebe ip para enviar o arquivo");
@@ -85,40 +86,48 @@ public class NodeServer {
     }
 
     void sendFiles() {
-            try (DatagramSocket clientSocket = new DatagramSocket()) {
-                InetAddress address;
-                if (isDebug) {
-                    address = InetAddress.getLocalHost();
-                } else {
-                    address = InetAddress.getByName(superNodeIp);
-                }
+        try {
+            readAllFiles();
 
+            List<File> fileList = files.stream()
+                    .map(pathData -> new File(pathData.getPath().getFileName().toString()
+                            , pathData.getHash()))
+                    .collect(Collectors.toList());
 
-                readAllFiles();
+            Response response = new Response(1, new Node(ip, fileList));
+            sendResponse(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-                List<File> fileList = files.stream()
-                        .map(pathData -> new File(pathData.getPath().getFileName().toString()
-                                , pathData.getHash()))
-                        .collect(Collectors.toList());
-
-                final Gson gson = new Gson();
-                String json = gson.toJson(new Response(1, new Node(ip, fileList)));
-
-                byte[] sendData = json.getBytes(Charset.forName("utf8"));
-
-                System.out.println(superNodeIp);
-                System.out.println(superNodePort);
-
-                DatagramPacket sendPacket = new DatagramPacket(
-                        sendData,
-                        sendData.length,
-                        address,
-                        superNodePort);
-
-                clientSocket.send(sendPacket);
-            } catch (Exception e) {
-                e.printStackTrace();
+    void sendResponse(Response response) {
+        try (DatagramSocket clientSocket = new DatagramSocket()) {
+            InetAddress address;
+            if (isDebug) {
+                address = InetAddress.getLocalHost();
+            } else {
+                address = InetAddress.getByName(superNodeIp);
             }
+
+            final Gson gson = new Gson();
+            String json = gson.toJson(response);
+
+            byte[] sendData = json.getBytes(Charset.forName("utf8"));
+
+            System.out.println(superNodeIp);
+            System.out.println(superNodePort);
+
+            DatagramPacket sendPacket = new DatagramPacket(
+                    sendData,
+                    sendData.length,
+                    address,
+                    superNodePort);
+
+            clientSocket.send(sendPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void readAllFiles() throws IOException {
