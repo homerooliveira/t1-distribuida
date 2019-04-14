@@ -45,7 +45,7 @@ public class MulticastServerMetal {
                 int status = response.getStatus();
 
                 if (status == MulticastServerMetal.RECEIVING_FILES_FROM_NODE) {
-                    System.out.println(response.getFiles());
+//                    System.out.println(response.getFiles());
                 } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_SUPER_NODE) {
                     sendMoviesToSuperNodes();
                 } else if (status == MulticastServerMetal.RECEIVING_FILES_FROM_SUPER_NODE) {
@@ -105,7 +105,7 @@ public class MulticastServerMetal {
                 int status = response.getStatus();
                 if (status == MulticastServerMetal.RECEIVING_FILES_FROM_NODE) {
                     System.out.println(MulticastServerMetal.RECEIVING_FILES_FROM_NODE);
-                    response.getFiles();
+                    System.out.println(response.getNode());
                     // Recebendo filmes que o nodo possui
                 } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_NODE ) {
                     sendMoviesRequestToSuperNodes();

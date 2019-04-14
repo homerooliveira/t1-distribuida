@@ -4,34 +4,26 @@ import java.util.List;
 
 public class Response {
     private int status;
-    private List<File> files;
+    private Node node;
 
-    public Response(int status, List<File> files) {
+    public Response(int status, Node node) {
         this.status = status;
-        this.files = files;
+        this.node = node;
     }
 
     public int getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public List<File> getFiles() {
-        return files;
-    }
-
-    public void setFiles(List<File> files) {
-        this.files = files;
+    public Node getNode() {
+        return node;
     }
 
     @Override
     public String toString() {
         return "Response{" +
                 "status=" + status +
-                ", files=" + files +
+                ", node=" + node +
                 '}';
     }
 }

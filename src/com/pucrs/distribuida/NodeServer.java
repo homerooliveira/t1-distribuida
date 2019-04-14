@@ -39,7 +39,7 @@ public class NodeServer {
         new NodeServer(ip, superNodeIp, superNodePort, isDebug, path).run();
     }
 
-    public  NodeServer(String ip, String superNodeIp, int superNodePort, boolean isDebug, String path) {
+    public NodeServer(String ip, String superNodeIp, int superNodePort, boolean isDebug, String path) {
         this.ip = ip;
         this.superNodeIp = superNodeIp;
         this.superNodePort = superNodePort;
@@ -50,7 +50,7 @@ public class NodeServer {
 
     public void run() {
         sendFiles();
-//        new Thread(this::listen).start();
+        new Thread(this::listen).start();
     }
 
     void listen() {
@@ -71,9 +71,11 @@ public class NodeServer {
                 final String receivedMessage = new String(receivePacket.getData(), receivePacket.getOffset(),
                         receivePacket.getLength());
 
-                if(receivedMessage.charAt(0) == '1') {
+                Response response = new Gson().fromJson(receivedMessage, Response.class);
+
+                if(response.getStatus() == 6) {
                     System.out.println("Parse da lista");
-                } else if(receivedMessage.charAt(0) == '2') {
+                } else if(response.getStatus() == 7) {
                     System.out.println("recebe ip para enviar o arquivo");
                 }
             }
@@ -100,7 +102,7 @@ public class NodeServer {
                         .collect(Collectors.toList());
 
                 final Gson gson = new Gson();
-                String json = gson.toJson(new Response(1, fileList));
+                String json = gson.toJson(new Response(1, new Node(ip, fileList)));
 
                 byte[] sendData = json.getBytes(Charset.forName("utf8"));
 
