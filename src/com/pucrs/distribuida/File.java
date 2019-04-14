@@ -16,4 +16,12 @@ public class File {
     public String getHash() {
         return hash;
     }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "name='" + name + '\'' +
+                ", hash='" + hash + '\'' +
+                '}';
+    }
 }

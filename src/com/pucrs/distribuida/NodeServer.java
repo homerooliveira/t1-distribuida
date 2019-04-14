@@ -1,13 +1,20 @@
 package com.pucrs.distribuida;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.rmi.server.ExportException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 public class NodeServer {
 
@@ -20,6 +27,7 @@ public class NodeServer {
     private final int superNodePort;
     private final boolean isDebug;
     private final String path;
+    private List<PathData> files;
 
     public static void main(String[] args) {
         String ip = args[0];
@@ -42,7 +50,7 @@ public class NodeServer {
 
     public void run() {
         sendFiles();
-        new Thread(this::listen).start();
+//        new Thread(this::listen).start();
     }
 
     void listen() {
@@ -83,8 +91,21 @@ public class NodeServer {
                     address = InetAddress.getByName(superNodeIp);
                 }
 
-                // TODO: Fazer parse dos arquivos
-                byte[] sendData = "arquivos".getBytes();
+
+                readAllFiles();
+
+                List<File> fileList = files.stream()
+                        .map(pathData -> new File(pathData.getPath().getFileName().toString()
+                                , pathData.getHash()))
+                        .collect(Collectors.toList());
+
+                final Gson gson = new Gson();
+                String json = gson.toJson(new Response(1, fileList));
+
+                byte[] sendData = json.getBytes(Charset.forName("utf8"));
+
+                System.out.println(superNodeIp);
+                System.out.println(superNodePort);
 
                 DatagramPacket sendPacket = new DatagramPacket(
                         sendData,
@@ -98,16 +119,36 @@ public class NodeServer {
             }
     }
 
-    void readAllFiles() throws IOException {
-        Files.walk(Paths.get(path))
+    private void readAllFiles() throws IOException {
+        files = Files.list(Paths.get(path))
                 .filter(Files::isRegularFile)
                 .map(path1 -> {
                     try {
-                        Files.lines(path1);
-                        return  "";
+                        byte[] bytes = Files.lines(path1, Charset.forName("utf8"))
+                                .collect(Collectors.joining())
+                                .getBytes(Charset.forName("utf8"));
+                        return new PathData(path1, bytes);
                     } catch (IOException e) {
-                        return "";
+                        e.printStackTrace();
+                        return new PathData(path1, new byte[0]);
                     }
-                });
+                })
+                .filter(pathData -> pathData.data.length > 0)
+                .map(pathData -> {
+                    try {
+                        byte[] data = MessageDigest.getInstance("MD5").digest(pathData.data);
+                        StringBuilder sb = new StringBuilder(2 * data.length);
+                        for(byte b : data) {
+                            sb.append(String.format("%02x", b&0xff));
+                        }
+                        pathData.setHash(sb.toString());
+                        return pathData;
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                        return pathData;
+                    }
+
+                })
+                .collect(Collectors.toList());
     }
 }
