@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 
 public class NodeServer {
-    
+
     public static final int DEFAULT_PORT = 4000;
 
     private final String ip;
