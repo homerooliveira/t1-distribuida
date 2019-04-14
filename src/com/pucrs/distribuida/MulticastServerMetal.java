@@ -9,11 +9,6 @@ import java.util.UUID;
 public class MulticastServerMetal {
 
     private final String IDENTIFIER = UUID.randomUUID().toString();
-    private static final int RECEIVING_FILES_FROM_NODE = 1;
-    private static final int RECEIVING_REQUEST_FROM_NODE = 2;
-    private static final int LIFE_SIGNAL_FROM_NODE = 3;
-    private static final int RECEIVING_FILES_FROM_SUPER_NODE = 4;
-    private static final int RECEIVING_REQUEST_FROM_SUPER_NODE = 5;
 
     public static void main(String[] args) throws IOException {
         MulticastServerMetal multicastServerMetal = new MulticastServerMetal();
@@ -44,11 +39,9 @@ public class MulticastServerMetal {
 
                 int status = response.getStatus();
 
-                if (status == MulticastServerMetal.RECEIVING_FILES_FROM_NODE) {
-                    System.out.println(response.getFiles());
-                } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_SUPER_NODE) {
+                if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_SUPER_NODE) {
                     sendMoviesToSuperNodes();
-                } else if (status == MulticastServerMetal.RECEIVING_FILES_FROM_SUPER_NODE) {
+                } else if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
                     // atualiza meus filmes
                 }
                 System.out.println("Received: " + recebido);
@@ -103,18 +96,16 @@ public class MulticastServerMetal {
                 Gson gson = new Gson();
                 Response response = gson.fromJson(receivedMessage, Response.class);
                 int status = response.getStatus();
-                if (status == MulticastServerMetal.RECEIVING_FILES_FROM_NODE) {
-                    System.out.println(MulticastServerMetal.RECEIVING_FILES_FROM_NODE);
+                if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_NODE) {
                     response.getFiles();
                     // Recebendo filmes que o nodo possui
-                } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_NODE ) {
+                } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE ) {
                     sendMoviesRequestToSuperNodes();
                     // recebendo requisição de filme do nodo
                     Thread.sleep(5000);
                     System.out.println("Respondendo nodo.");
                     sendToNode("192.168.0.19", 400);
-                } else if (status == MulticastServerMetal.LIFE_SIGNAL_FROM_NODE) {
-                    System.out.println(MulticastServerMetal.LIFE_SIGNAL_FROM_NODE);
+                } else if (status == Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE) {
                     // nodo esta vivo, atualisa a data dele
                 }
 
