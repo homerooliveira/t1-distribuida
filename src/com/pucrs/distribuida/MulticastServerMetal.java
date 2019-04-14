@@ -48,6 +48,8 @@ public class MulticastServerMetal {
                     System.out.println(response.getFiles());
                 } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_SUPER_NODE) {
                     sendMoviesToSuperNodes();
+                } else if (status == MulticastServerMetal.RECEIVING_FILES_FROM_SUPER_NODE) {
+                    // atualiza meus filmes
                 }
                 System.out.println("Received: " + recebido);
             }
@@ -83,24 +85,6 @@ public class MulticastServerMetal {
             e.printStackTrace();
         }
     }
-//    public void sendToSuperNodes() {
-//        Scanner input = new Scanner(System.in);
-//        boolean hasWork = true;
-//
-//        while (hasWork) {
-//            byte[] saida = input.nextLine().getBytes();
-//            DatagramSocket socket = null;
-//            try {
-//                socket = new DatagramSocket();
-//                InetAddress grupo = InetAddress.getByName("230.0.0.1");
-//                DatagramPacket pacote = new DatagramPacket(saida,saida.length,grupo,5000);
-//                socket.send(pacote);
-//                socket.close();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     public void listenNodes() {
         DatagramSocket serverSocket;
@@ -115,16 +99,22 @@ public class MulticastServerMetal {
                 final String receivedMessage = new String(receivePacket.getData(), receivePacket.getOffset(),
                         receivePacket.getLength());
                 System.out.println("Received message from node: " + receivedMessage);
-                int status = 2;
-                if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_SUPER_NODE) {
+
+                Gson gson = new Gson();
+                Response response = gson.fromJson(receivedMessage, Response.class);
+                int status = response.getStatus();
+                if (status == MulticastServerMetal.RECEIVING_FILES_FROM_NODE) {
+                    System.out.println(MulticastServerMetal.RECEIVING_FILES_FROM_NODE);
+                    response.getFiles();
                     // Recebendo filmes que o nodo possui
-                } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_NODE) {
+                } else if (status == MulticastServerMetal.RECEIVING_REQUEST_FROM_NODE ) {
                     sendMoviesRequestToSuperNodes();
                     // recebendo requisição de filme do nodo
                     Thread.sleep(5000);
                     System.out.println("Respondendo nodo.");
                     sendToNode("192.168.0.19", 400);
                 } else if (status == MulticastServerMetal.LIFE_SIGNAL_FROM_NODE) {
+                    System.out.println(MulticastServerMetal.LIFE_SIGNAL_FROM_NODE);
                     // nodo esta vivo, atualisa a data dele
                 }
 
