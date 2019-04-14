@@ -18,9 +18,7 @@ import java.util.stream.Collectors;
 
 
 public class NodeServer {
-
-    public static final int SUPER_NODE_MESSAGE = 1;
-    public static final int NODE_MESSAGE = 2;
+    
     public static final int DEFAULT_PORT = 4000;
 
     private final String ip;
