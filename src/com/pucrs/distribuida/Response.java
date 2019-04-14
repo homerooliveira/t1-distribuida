@@ -9,6 +9,11 @@ public class Response {
     private ArrayList<File> files;
     private String fileRequasted;
 
+    public Response(int status) {
+        this.status = status;
+        this.node = null;
+    }
+
     public Response(int status, Node node) {
         this.status = status;
         this.node = node;
