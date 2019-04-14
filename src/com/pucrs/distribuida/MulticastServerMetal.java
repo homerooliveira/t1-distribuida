@@ -4,9 +4,12 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class MulticastServerMetal {
+
+    private ArrayList<Node> nodes = new ArrayList<Node>();
 
     private final String IDENTIFIER = UUID.randomUUID().toString();
 
@@ -97,14 +100,15 @@ public class MulticastServerMetal {
                 Response response = gson.fromJson(receivedMessage, Response.class);
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_NODE) {
+                    nodes.add(response.getNode());
                     response.getNode().getFiles();
                     // Recebendo filmes que o nodo possui
-                } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE ) {
+                } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE) {
                     sendMoviesRequestToSuperNodes();
                     // recebendo requisição de filme do nodo
                     Thread.sleep(5000);
                     System.out.println("Respondendo nodo.");
-                    sendToNode("192.168.0.19", 400);
+                    sendToNode("192.168.0.19", 400, response.getFileRequested());
                 } else if (status == Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE) {
                     // nodo esta vivo, atualisa a data dele
                 }
@@ -115,8 +119,18 @@ public class MulticastServerMetal {
         }
     }
 
-    public void sendToNode(String clientIp, int clientPort) {
+    public void sendToNode(String clientIp, int clientPort, String fileRequested) {
         try {
+            ArrayList<File> files = new ArrayList<File>();
+            for (Node node : nodes) {
+                for (File file : node.getFiles()) {
+                    if (file.getName().toLowerCase().contains(fileRequested.toLowerCase())) {
+                        files.add(file);
+                    }
+                }
+            }
+            Response request = new Response(Constants.SUPER_NODE_SEND_FILES_TO_NODE,files);
+            String json = new Gson().toJson(request);
             DatagramSocket clientSocket = new DatagramSocket();
             InetAddress address = InetAddress.getByName(clientIp);
             byte[] sendData = "Toma os filmes!".getBytes();

@@ -98,7 +98,7 @@ public class NodeServer {
 
                 List<File> fileList = files.stream()
                         .map(pathData -> new File(pathData.getPath().getFileName().toString()
-                                , pathData.getHash()))
+                                , pathData.getHash(), ip))
                         .collect(Collectors.toList());
 
                 final Gson gson = new Gson();
