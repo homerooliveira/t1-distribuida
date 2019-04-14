@@ -6,6 +6,11 @@ public class Response {
     private int status;
     private Node node;
 
+    public Response(int status) {
+        this.status = status;
+        this.node = null;
+    }
+
     public Response(int status, Node node) {
         this.status = status;
         this.node = node;

@@ -72,9 +72,9 @@ public class NodeServer {
 
                 Response response = new Gson().fromJson(receivedMessage, Response.class);
 
-                if(response.getStatus() == Constants.NODE_SEND_REQUEST_TO_SUPER_NODE) {
+                if(response.getStatus() == Constants.NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
                     System.out.println("Parse da lista");
-                } else if(response.getStatus() == 7) {
+                } else if(response.getStatus() == Constants.NODE_REQUEST_FILE_TO_NODE) {
                     System.out.println("recebe ip para enviar o arquivo");
                 }
             }
@@ -159,5 +159,9 @@ public class NodeServer {
 
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void sendSignal() {
+        
     }
 }

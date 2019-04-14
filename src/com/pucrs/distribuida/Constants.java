@@ -18,4 +18,7 @@ public class Constants {
 
     static final int SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE = 6;
     static final int NODE_SEND_LIFE_SIGNAL_TO_SUPER_NODE = 6;
+
+    static final int NODE_REQUEST_FILE_TO_NODE = 7;
+    static final int NODE_RECEIVE_FILE_FROM_NODE = 7;
 }
