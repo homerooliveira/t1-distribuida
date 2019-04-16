@@ -94,14 +94,16 @@ public class MulticastServerMetal {
 
                 final String receivedMessage = new String(receivePacket.getData(), receivePacket.getOffset(),
                         receivePacket.getLength());
-                System.out.println("Received message from node: " + receivedMessage);
+//                System.out.println("Received message from node: " + receivedMessage);
 
                 Gson gson = new Gson();
                 Response response = gson.fromJson(receivedMessage, Response.class);
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_NODE) {
+                    System.out.println("SUPER_NODE_RECEIVE_FILES_FROM_NODE");
                     nodes.add(response.getNode());
                     response.getNode().getFiles();
+                    System.out.println(nodes);
                     // Recebendo filmes que o nodo possui
                 } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE) {
                     sendMoviesRequestToSuperNodes();

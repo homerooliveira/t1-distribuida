@@ -92,7 +92,7 @@ public class NodeServer {
                             , pathData.getHash(), ip))
                     .collect(Collectors.toList());
 
-            Response response = new Response(1, new Node(ip, fileList));
+            Response response = new Response(Constants.NODE_SEND_FILES_TO_SUPER_NODE, new Node(ip, fileList));
             sendResponse(response);
         } catch (IOException e) {
             e.printStackTrace();
