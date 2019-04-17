@@ -13,8 +13,14 @@ public class MulticastServerMetal {
 
     private final String IDENTIFIER = UUID.randomUUID().toString();
 
+    public static final int GROUP_PORT = 5000;
+    public static final int DIRECT_PORT = 6000;
+    private String ip;
+
     public static void main(String[] args) throws IOException {
-        MulticastServerMetal multicastServerMetal = new MulticastServerMetal();
+        String ip = args[0];
+        MulticastServerMetal multicastServerMetal = new MulticastServerMetal(ip);
+
         new Thread(() -> {
             multicastServerMetal.listenSuperNodes();
         }).start();
@@ -24,10 +30,14 @@ public class MulticastServerMetal {
         }).start();
     }
 
+    public MulticastServerMetal(String ip) {
+        this.ip = ip;
+    }
+
     public void listenSuperNodes() {
         MulticastSocket socket = null;
         try {
-            socket = new MulticastSocket(5000);
+            socket = new MulticastSocket(GROUP_PORT);
             InetAddress grupo = InetAddress.getByName("230.0.0.1");
             socket.joinGroup(grupo);
             while (true) {
@@ -68,7 +78,12 @@ public class MulticastServerMetal {
         }
     }
 
-    public void sendMoviesRequestToSuperNodes() {
+    Response getFileRequest(String fileHash) {
+        Response request = new Response(fileHash, ip);
+        request.setSenderIp(ip);
+        return request;
+    }
+    public void sendToSuperNodes(Response request) {
         byte[] saida = "Toma os filmes".getBytes();
         DatagramSocket socket = null;
         try {
@@ -106,7 +121,8 @@ public class MulticastServerMetal {
                     System.out.println(nodes);
                     // Recebendo filmes que o nodo possui
                 } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE) {
-                    sendMoviesRequestToSuperNodes();
+                    Response request = getFileRequest(response.getFileHash());
+                    sendToSuperNodes(request);
                     // recebendo requisição de filme do nodo
                     Thread.sleep(5000);
                     System.out.println("Respondendo nodo.");

@@ -23,9 +23,8 @@ public class Response {
         this.senderIp = senderIp;
     }
 
-    // NODE_REQUEST_FILE_TO_NODE
+    // REQUEST FILE
     public Response(String fileHash, String senderIp) {
-        this.status = Constants.NODE_REQUEST_FILE_TO_NODE;
         this.fileHash = fileHash;
         this.senderIp = senderIp;
     }
@@ -72,6 +71,9 @@ public class Response {
 
     public String getSenderIp() {
         return senderIp;
+    }
+    public String setSenderIp(String senderIp) {
+        return this.senderIp = senderIp;
     }
 
     @Override
