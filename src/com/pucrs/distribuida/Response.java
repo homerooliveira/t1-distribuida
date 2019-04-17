@@ -1,38 +1,77 @@
 package com.pucrs.distribuida;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Response {
     private int status;
     private Node node;
+    private ArrayList<Node> nodes;
     private ArrayList<File> files;
-    private String fileRequasted;
-
+    private String fileRequested;
     private String fileHash;
     private String fileName;
     private byte[] fileData;
-
     private String senderIp;
 
-    // NODE_SEND_FILE_TO_NODE
-    public Response(String fileName, byte[] fileData, String senderIp) {
-        this.status = Constants.NODE_SEND_FILE_TO_NODE;
-        this.fileName = fileName;
-        this.fileData = fileData;
-        this.senderIp = senderIp;
-    }
+    public Response(){}
 
-    // REQUEST FILE
-    public Response(String fileHash, String senderIp) {
-        this.fileHash = fileHash;
-        this.senderIp = senderIp;
-    }
-
-    public Response(int status) {
+    public int getStatus() { return status; }
+    public void setStatus(int status) {
         this.status = status;
-        this.node = null;
     }
+
+    public Node getNode() { return node; }
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
+    public ArrayList<Node> getNodes() { return nodes; }
+    public void setNodes(ArrayList<Node> nodes) {
+        this.nodes = nodes;
+    }
+
+    public ArrayList<File> getFiles() {  return files; }
+    public void setFiles(ArrayList<File> files) {
+        this.files = files;
+    }
+
+    public String getFileRequested() { return fileRequested; }
+    public void setFileRequested(String fileRequested) {
+        this.fileRequested = fileRequested;
+    }
+
+    public String getFileHash() { return fileHash; }
+    public void setFileHash(String fileHash) {
+        this.fileHash = fileHash;
+    }
+
+    public String getFileName() { return this.fileName; }
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public byte[] getFileData() { return this.fileData; }
+    public void setFileData(byte[] fileName) {
+        this.fileData = fileData;
+    }
+
+    public String getSenderIp() { return senderIp; }
+    public void setSenderIp(String senderIp) {
+        this.senderIp = senderIp;
+    }
+
+
+
+
+    // NODE_SEND_FILE_TO_NODE
+//    public Response(String fileName, byte[] fileData, String senderIp) {
+//        this.status = Constants.NODE_SEND_FILE_TO_NODE;
+//        this.fileName = fileName;
+//        this.fileData = fileData;
+//        this.senderIp = senderIp;
+//    }
+
+
 
     public Response(int status, Node node) {
         this.status = status;
@@ -44,43 +83,20 @@ public class Response {
         this.files = files;
     }
 
-    public Response(int status, String fileRequasted) {
+    public Response(int status, String fileRequested) {
         this.status = status;
-        this.fileRequasted = fileRequasted;
+        this.fileRequested = fileRequested;
     }
 
-    public String getFileHash() {
-        return fileHash;
-    }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public Node getNode() {
-        return node;
-    }
-
-    public ArrayList<File> getFiles() {
-        return files;
-    }
-
-    public String getFileRequested() {
-        return fileRequasted;
-    }
-
-    public String getSenderIp() {
-        return senderIp;
-    }
-    public String setSenderIp(String senderIp) {
-        return this.senderIp = senderIp;
-    }
 
     @Override
     public String toString() {
         return "Response{" +
                 "status=" + status +
                 ", node=" + node +
+                ", files=" + files +
+                ", fileRequested='" + fileRequested + '\'' +
                 '}';
     }
 }

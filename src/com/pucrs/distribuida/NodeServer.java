@@ -1,8 +1,6 @@
 package com.pucrs.distribuida;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.sun.tools.classfile.ConstantPool;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -14,6 +12,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 
@@ -23,26 +22,20 @@ public class NodeServer {
 
     private final String ip;
     private final String superNodeIp;
-    private final int superNodePort;
-    private final boolean isDebug;
     private final String path;
     private List<PathData> files;
 
     public static void main(String[] args) {
         String ip = args[0];
         String superNodeIp = args[1];
-        int superNodePort = Integer.parseInt(args[2]);
-        boolean isDebug = Boolean.parseBoolean(args[3]);
-        String path = args[4];
+        String path = args[2];
 
-        new NodeServer(ip, superNodeIp, superNodePort, isDebug, path).run();
+        new NodeServer(ip, superNodeIp, path).run();
     }
 
-    public NodeServer(String ip, String superNodeIp, int superNodePort, boolean isDebug, String path) {
+    public NodeServer(String ip, String superNodeIp, String path) {
         this.ip = ip;
         this.superNodeIp = superNodeIp;
-        this.superNodePort = superNodePort;
-        this.isDebug = isDebug;
         this.path = path;
     }
 
@@ -50,20 +43,24 @@ public class NodeServer {
     public void run() {
         sendFiles();
         new Thread(this::listen).start();
+        new Thread(this::sendSignal).start();
+        new Thread(this::listenKeyboard).start();
     }
 
     void listenKeyboard() {
-
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            String fileRequested = scanner.nextLine();
+            Response request = new Response();
+            request.setStatus(Constants.NODE_SEND_REQUEST_TO_SUPER_NODE);
+            request.setFileRequested(fileRequested);
+            sendToSuperNode(request);
+        }
     }
 
     void listen() {
-        DatagramSocket serverSocket;
         try {
-            if (isDebug) {
-                serverSocket = new DatagramSocket(Integer.parseInt(ip));
-            } else {
-                serverSocket = new DatagramSocket(DEFAULT_PORT);
-            }
+            DatagramSocket serverSocket = new DatagramSocket(DEFAULT_PORT);
 
             final byte[] receiveData = new byte[1024];
 
@@ -93,8 +90,10 @@ public class NodeServer {
 
     Response getFileResponseToNode(String fileHash) {
         for (PathData file : files) {
-            if (file.hash.equalsIgnoreCase(fileHash)) {
-                Response response = new Response("", file.data, ip);
+            if (file.hash.equals(fileHash)) {
+                Response response = new Response();
+                response.setStatus(Constants.NODE_SEND_FILE_TO_NODE);
+                response.setFileData(file.data);
                 return response;
             }
         }
@@ -111,7 +110,7 @@ public class NodeServer {
                     .collect(Collectors.toList());
 
             Response response = new Response(Constants.NODE_SEND_FILES_TO_SUPER_NODE, new Node(ip, fileList));
-            sendResponse(response);
+            sendToSuperNode(response);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -139,30 +138,17 @@ public class NodeServer {
         }
     }
 
-    void sendResponse(Response response) {
-        try (DatagramSocket clientSocket = new DatagramSocket()) {
-            InetAddress address;
-            if (isDebug) {
-                address = InetAddress.getLocalHost();
-            } else {
-                address = InetAddress.getByName(superNodeIp);
-            }
+    void sendToSuperNode(Response response) {
+        try {
+            InetAddress address = InetAddress.getByName(superNodeIp);
 
-            final Gson gson = new Gson();
-            String json = gson.toJson(response);
-
+            String json = new Gson().toJson(response);
             byte[] sendData = json.getBytes(Charset.forName("utf8"));
 
-            System.out.println(superNodeIp);
-            System.out.println(superNodePort);
-
-            DatagramPacket sendPacket = new DatagramPacket(
-                    sendData,
-                    sendData.length,
-                    address,
-                    superNodePort);
-
-            clientSocket.send(sendPacket);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, MulticastServerMetal.DIRECT_PORT);
+            DatagramSocket socket = new DatagramSocket();
+            socket.send(sendPacket);
+            socket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -202,6 +188,16 @@ public class NodeServer {
     }
 
     private void sendSignal() {
-        
+        while (true) {
+            Response response = new Response();
+            response.setStatus(Constants.NODE_SEND_LIFE_SIGNAL_TO_SUPER_NODE);
+            response.setSenderIp(ip);
+            sendToSuperNode(response);
+            try {
+                Thread.sleep(5 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
