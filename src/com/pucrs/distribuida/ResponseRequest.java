@@ -2,7 +2,7 @@ package com.pucrs.distribuida;
 
 import java.util.ArrayList;
 
-public class Response {
+public class ResponseRequest {
     private int status;
     private Node node;
     private ArrayList<Node> nodes;
@@ -13,7 +13,7 @@ public class Response {
     private String senderIp;
     private String requestIdentifier;
 
-    public Response(){}
+    public ResponseRequest(){}
 
     public int getStatus() { return status; }
     public void setStatus(int status) {
@@ -64,7 +64,7 @@ public class Response {
 
 
     // NODE_SEND_FILE_TO_NODE
-//    public Response(String fileName, byte[] fileData, String senderIp) {
+//    public ResponseRequest(String fileName, byte[] fileData, String senderIp) {
 //        this.status = Constants.NODE_SEND_FILE_TO_NODE;
 //        this.fileName = fileName;
 //        this.fileData = fileData;
@@ -73,19 +73,19 @@ public class Response {
 
 
 
-    public Response(int status, Node node) {
+    public ResponseRequest(int status, Node node) {
         this.status = status;
         this.node = node;
     }
 
-    public Response(int status, ArrayList<File> files) {
+    public ResponseRequest(int status, ArrayList<File> files) {
         this.status = status;
         this.files = files;
     }
 
     @Override
     public String toString() {
-        return "Response{" +
+        return "ResponseRequest{" +
                 "status=" + status +
                 ", node=" + node +
                 ", nodes=" + nodes +

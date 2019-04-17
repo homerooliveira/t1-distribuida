@@ -55,7 +55,7 @@ public class NodeServer {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String fileName = scanner.nextLine();
-            Response request = new Response();
+            ResponseRequest request = new ResponseRequest();
             request.setSenderIp(ip);
             request.setStatus(Constants.NODE_SEND_REQUEST_TO_SUPER_NODE);
             request.setFileName(fileName);
@@ -77,7 +77,7 @@ public class NodeServer {
                 final String receivedMessage = new String(receivePacket.getData(), receivePacket.getOffset(),
                         receivePacket.getLength());
 
-                Response response = new Gson().fromJson(receivedMessage, Response.class);
+                ResponseRequest response = new Gson().fromJson(receivedMessage, ResponseRequest.class);
 
                 if(response.getStatus() == Constants.NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
                     System.out.println("#Receiving files from super node.");
@@ -101,10 +101,10 @@ public class NodeServer {
     }
 
     // takes the file that will be sent in the response to the node that made the request
-    Response getFileResponseToNode(String fileHash) {
+    ResponseRequest getFileResponseToNode(String fileHash) {
         for (PathData file : files) {
             if (file.hash.equals(fileHash)) {
-                Response response = new Response();
+                ResponseRequest response = new ResponseRequest();
                 response.setStatus(Constants.NODE_SEND_FILE_TO_NODE);
                 response.setFileData(file.data);
                 response.setSenderIp(ip);
@@ -117,7 +117,7 @@ public class NodeServer {
     // sends the file requested to node
     void sendFileToNode(String fileHash, String nodeIp) {
         System.out.println("#Sending file to node - nodeIp: " + nodeIp);
-        Response response = getFileResponseToNode(fileHash);
+        ResponseRequest response = getFileResponseToNode(fileHash);
         sendToNode(response, nodeIp);
     }
 
@@ -131,7 +131,7 @@ public class NodeServer {
                             , pathData.getHash(), ip))
                     .collect(Collectors.toList());
 
-            Response response = new Response(Constants.NODE_SEND_FILES_TO_SUPER_NODE, new Node(ip, fileList));
+            ResponseRequest response = new ResponseRequest(Constants.NODE_SEND_FILES_TO_SUPER_NODE, new Node(ip, fileList));
             response.setSenderIp(ip);
             sendToSuperNode(response);
         } catch (IOException e) {
@@ -142,14 +142,14 @@ public class NodeServer {
     // sends a requested file to node
     void sendRequestFileToNode(String fileHash, String nodeIp) {
         System.out.println("#Sending file request to node - nodeIp: " + nodeIp);
-        Response request = new Response();
+        ResponseRequest request = new ResponseRequest();
         request.setStatus(Constants.NODE_REQUEST_FILE_TO_NODE);
         request.setFileHash(fileHash);
         request.setSenderIp(ip);
         sendToNode(request, nodeIp);
     }
 
-    void sendToNode(Response response, String nodeIp) {
+    void sendToNode(ResponseRequest response, String nodeIp) {
         try {
             String json = new Gson().toJson(response);
             byte[] sendData = json.getBytes(Charset.forName("utf8"));
@@ -170,14 +170,14 @@ public class NodeServer {
     }
 
     // sends actions to the super node
-    void sendToSuperNode(Response response) {
+    void sendToSuperNode(ResponseRequest response) {
         try {
             InetAddress address = InetAddress.getByName(superNodeIp);
 
             String json = new Gson().toJson(response);
             byte[] sendData = json.getBytes(Charset.forName("utf8"));
 
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, MulticastServerMetal.DIRECT_NODE_PORT);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, SuperNodeServer.DIRECT_NODE_PORT);
             DatagramSocket socket = new DatagramSocket();
             socket.send(sendPacket);
             socket.close();
@@ -223,7 +223,7 @@ public class NodeServer {
     // sends a life signal to the super node
     private void sendSignal() {
         while (true) {
-            Response response = new Response();
+            ResponseRequest response = new ResponseRequest();
             response.setStatus(Constants.NODE_SEND_LIFE_SIGNAL_TO_SUPER_NODE);
             response.setSenderIp(ip);
             sendToSuperNode(response);
