@@ -11,6 +11,7 @@ public class Response {
     private String fileName;
     private byte[] fileData;
     private String senderIp;
+    private String requestIdentifier;
 
     public Response(){}
 
@@ -45,13 +46,18 @@ public class Response {
     }
 
     public byte[] getFileData() { return this.fileData; }
-    public void setFileData(byte[] fileName) {
+    public void setFileData(byte[] fileData) {
         this.fileData = fileData;
     }
 
     public String getSenderIp() { return senderIp; }
     public void setSenderIp(String senderIp) {
         this.senderIp = senderIp;
+    }
+
+    public String getRequestIdentifier() { return requestIdentifier; }
+    public void setRequestIdentifier(String requestIdentifier) {
+        this.requestIdentifier = requestIdentifier;
     }
 
 

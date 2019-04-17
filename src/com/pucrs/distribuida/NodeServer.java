@@ -76,6 +76,7 @@ public class NodeServer {
 
                 if(response.getStatus() == Constants.NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
                     System.out.println("#Receiving files from super node.");
+                    System.out.println(response);
                 } else if(response.getStatus() == Constants.NODE_RECEIVE_FILE_REQUEST_FROM_NODE) {
                     System.out.println("#Sending file to node - nodeIp: " + response.getSenderIp());
                     Response fileResponse = getFileResponseToNode(response.getFileHash());
