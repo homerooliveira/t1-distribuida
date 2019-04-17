@@ -90,6 +90,18 @@ public class SuperNodeServer {
         }
     }
 
+    ArrayList<File> filesForName(String fileName) {
+        ArrayList<File> files = new ArrayList<File>();
+        for (Node node : nodes.values()) {
+            for (File file : node.getFiles()) {
+                if (file.getName().contains(fileName)) {
+                    files.add(file);
+                }
+            }
+        }
+        return  files;
+    }
+
     // answers a super node with the files related to your request
     public void sendResponseToSuperNode(String requestIdentifier, String fileName, String superNodeIp) {
         try {
@@ -100,15 +112,7 @@ public class SuperNodeServer {
             request.setSenderIp(superNodeIp);
             request.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_SUPER_NODE);
 
-            ArrayList<File> files = new ArrayList<File>();
-            for (Node node : nodes.values()) {
-                for (File file : node.getFiles()) {
-                    if (file.getName().contains(fileName)) {
-                        files.add(file);
-                    }
-                }
-            }
-
+            ArrayList<File> files = filesForName(fileName);
             request.setFiles(files);
 
             String json = new Gson().toJson(request);
@@ -193,6 +197,7 @@ public class SuperNodeServer {
                     ResponseRequest request = getFileRequest(response.getFileName());
                     sendToSuperNodes(request);
                     Thread.sleep(5000);
+                    updateRequest(request.getRequestIdentifier(), filesForName(response.getFileName()));
                     System.out.println("#Sending files to node - nodeIp: " + response.getSenderIp());
                     sendFilesToNode(request.getRequestIdentifier(), response.getSenderIp());
                 } else if (status == Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE) {
