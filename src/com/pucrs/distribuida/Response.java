@@ -9,6 +9,27 @@ public class Response {
     private ArrayList<File> files;
     private String fileRequasted;
 
+    private String fileHash;
+    private String fileName;
+    private byte[] fileData;
+
+    private String senderIp;
+
+    // NODE_SEND_FILE_TO_NODE
+    public Response(String fileName, byte[] fileData, String senderIp) {
+        this.status = Constants.NODE_SEND_FILE_TO_NODE;
+        this.fileName = fileName;
+        this.fileData = fileData;
+        this.senderIp = senderIp;
+    }
+
+    // NODE_REQUEST_FILE_TO_NODE
+    public Response(String fileHash, String senderIp) {
+        this.status = Constants.NODE_REQUEST_FILE_TO_NODE;
+        this.fileHash = fileHash;
+        this.senderIp = senderIp;
+    }
+
     public Response(int status) {
         this.status = status;
         this.node = null;
@@ -29,6 +50,10 @@ public class Response {
         this.fileRequasted = fileRequasted;
     }
 
+    public String getFileHash() {
+        return fileHash;
+    }
+
     public int getStatus() {
         return status;
     }
@@ -43,6 +68,10 @@ public class Response {
 
     public String getFileRequested() {
         return fileRequasted;
+    }
+
+    public String getSenderIp() {
+        return senderIp;
     }
 
     @Override
