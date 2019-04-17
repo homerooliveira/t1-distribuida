@@ -119,7 +119,7 @@ public class MulticastServerMetal {
 
     Response getFileRequest(String fileRequested) {
         Response request = new Response();
-        request.setFileRequested(fileRequested);
+        request.setFileName(fileRequested);
         int status = Constants.SUPER_NODE_SEND_REQUEST_TO_SUPER_NODE;
         request.setStatus(status);
         request.setSenderIp(ip);
@@ -158,12 +158,12 @@ public class MulticastServerMetal {
                     Node node = response.getNode();
                     nodes.put(node.getIp(), node);
                 } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE) {
-                    System.out.println("#Receiving request from node - fileRequested: " + response.getFileRequested());
-                    Response request = getFileRequest(response.getFileRequested());
+                    System.out.println("#Receiving request from node - fileRequested: " + response.getFileName());
+                    Response request = getFileRequest(response.getFileName());
                     sendToSuperNodes(request);
                     Thread.sleep(5000);
                     System.out.println("#Sending file to node.");
-                    sendToNode(response.getSenderIp(), NodeServer.DEFAULT_PORT, response.getFileRequested());
+                    sendToNode(response.getSenderIp(), NodeServer.DEFAULT_PORT, response.getFileName());
                 } else if (status == Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE) {
                     final String senderIp = response.getSenderIp();
                     final Node node = nodes.get(senderIp);

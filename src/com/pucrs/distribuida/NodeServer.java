@@ -50,10 +50,11 @@ public class NodeServer {
     void listenKeyboard() {
         Scanner scanner = new Scanner(System.in);
         while (true) {
-            String fileRequested = scanner.nextLine();
+            String fileName = scanner.nextLine();
             Response request = new Response();
+            request.setSenderIp(ip);
             request.setStatus(Constants.NODE_SEND_REQUEST_TO_SUPER_NODE);
-            request.setFileRequested(fileRequested);
+            request.setFileName(fileName);
             sendToSuperNode(request);
         }
     }

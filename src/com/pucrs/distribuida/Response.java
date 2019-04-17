@@ -7,7 +7,6 @@ public class Response {
     private Node node;
     private ArrayList<Node> nodes;
     private ArrayList<File> files;
-    private String fileRequested;
     private String fileHash;
     private String fileName;
     private byte[] fileData;
@@ -34,11 +33,6 @@ public class Response {
     public ArrayList<File> getFiles() {  return files; }
     public void setFiles(ArrayList<File> files) {
         this.files = files;
-    }
-
-    public String getFileRequested() { return fileRequested; }
-    public void setFileRequested(String fileRequested) {
-        this.fileRequested = fileRequested;
     }
 
     public String getFileHash() { return fileHash; }
@@ -89,20 +83,12 @@ public class Response {
         this.files = files;
     }
 
-    public Response(int status, String fileRequested) {
-        this.status = status;
-        this.fileRequested = fileRequested;
-    }
-
-
-
     @Override
     public String toString() {
         return "Response{" +
                 "status=" + status +
                 ", node=" + node +
                 ", files=" + files +
-                ", fileRequested='" + fileRequested + '\'' +
                 '}';
     }
 }
