@@ -8,6 +8,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -91,13 +92,26 @@ public class NodeServer {
                 } else if(response.getStatus() == Constants.NODE_RECEIVE_FILE_REQUEST_FROM_NODE) {
                     sendFileToNode(response.getFileHash(), response.getSenderIp());
                 } else if (response.getStatus() == Constants.NODE_RECEIVE_FILE_FROM_NODE) {
-                    System.out.println("#Receiving file from node.");
+                    String dir = path;
+                    final Path path = Paths.get(this.path, response.getFileName());
+                    writeBytesToFileNio(response.getFileData(), path);
                     System.out.println(response);
+
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void writeBytesToFileNio(byte[] bFile, Path path) {
+
+        try {
+            Files.write(path, bFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // takes the file that will be sent in the response to the node that made the request
@@ -107,6 +121,7 @@ public class NodeServer {
                 ResponseRequest response = new ResponseRequest();
                 response.setStatus(Constants.NODE_SEND_FILE_TO_NODE);
                 response.setFileData(file.data);
+                response.setFileName(file.getFileName());
                 response.setSenderIp(ip);
                 return response;
             }

@@ -150,9 +150,7 @@ public class SuperNodeServer {
         if (files == null) {
             requests.put(requestIdentifier, receivedFiles);
         } else {
-            for (File file : receivedFiles) {
-                files.add(file);
-            }
+            files.addAll(receivedFiles);
             requests.put(requestIdentifier, files);
         }
     }

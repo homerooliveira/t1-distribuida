@@ -26,6 +26,10 @@ public final class PathData {
         this.path = path;
     }
 
+    public String getFileName() {
+        return path.getFileName().toString();
+    }
+
     public byte[] getData() {
         return data;
     }

@@ -60,19 +60,6 @@ public class ResponseRequest {
         this.requestIdentifier = requestIdentifier;
     }
 
-
-
-
-    // NODE_SEND_FILE_TO_NODE
-//    public ResponseRequest(String fileName, byte[] fileData, String senderIp) {
-//        this.status = Constants.NODE_SEND_FILE_TO_NODE;
-//        this.fileName = fileName;
-//        this.fileData = fileData;
-//        this.senderIp = senderIp;
-//    }
-
-
-
     public ResponseRequest(int status, Node node) {
         this.status = status;
         this.node = node;
