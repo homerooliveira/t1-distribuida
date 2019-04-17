@@ -23,29 +23,23 @@ public class MulticastServerMetal {
 
     public static void main(String[] args) throws IOException {
         String ip = args[0];
-        MulticastServerMetal multicastServerMetal = new MulticastServerMetal(ip);
-
-        new Thread(() -> {
-            multicastServerMetal.listenSuperNodesGroup();
-        }).start();
-
-        new Thread(() -> {
-            multicastServerMetal.listenNodes();
-        }).start();
-
-        new Thread(() -> {
-            while (true) {
-                multicastServerMetal.removeDeadNodes();
-            }
-        }).start();
-
-        new Thread(() -> {
-            multicastServerMetal.listenSuperNodeDirect();
-        }).start();
+        new MulticastServerMetal(ip).run();
     }
 
     public MulticastServerMetal(String ip) {
         this.ip = ip;
+    }
+
+    public void run() {
+        new Thread(this::listenSuperNodesGroup).start();
+        new Thread(this::listenNodes).start();
+        new Thread(this::listenSuperNodeDirect).start();
+
+        new Thread(() -> {
+            while (true) {
+                removeDeadNodes();
+            }
+        }).start();
     }
 
     private synchronized void removeDeadNodes() {

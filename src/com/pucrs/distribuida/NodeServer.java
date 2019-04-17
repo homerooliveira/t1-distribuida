@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -80,12 +81,18 @@ public class NodeServer {
 
                 if(response.getStatus() == Constants.NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
                     System.out.println("#Receiving files from super node.");
-                    System.out.println(response);
+                    ArrayList<File> files = response.getFiles();
+                    if (files.isEmpty()) {
+                        System.out.println("#Não foi encontrado nenhum arquivo com o nome especificado");
+                    } else {
+                        File file = files.get(0);
+                        sendRequestFileToNode(file.getHash(), file.getIp());
+                    }
                 } else if(response.getStatus() == Constants.NODE_RECEIVE_FILE_REQUEST_FROM_NODE) {
-                    System.out.println("#Sending file to node - nodeIp: " + response.getSenderIp());
-                    sendRequestFileToNode(response.getFileHash(), response.getSenderIp());
+                    sendFileToNode(response.getFileHash(), response.getSenderIp());
                 } else if (response.getStatus() == Constants.NODE_RECEIVE_FILE_FROM_NODE) {
                     System.out.println("#Receiving file from node.");
+                    System.out.println(response);
                 }
             }
         } catch (Exception e) {
@@ -100,10 +107,18 @@ public class NodeServer {
                 Response response = new Response();
                 response.setStatus(Constants.NODE_SEND_FILE_TO_NODE);
                 response.setFileData(file.data);
+                response.setSenderIp(ip);
                 return response;
             }
         }
         return  null;
+    }
+
+    // sends the file requested to node
+    void sendFileToNode(String fileHash, String nodeIp) {
+        System.out.println("#Sending file to node - nodeIp: " + nodeIp);
+        Response response = getFileResponseToNode(fileHash);
+        sendToNode(response, nodeIp);
     }
 
     // sends to the super node a list of files that this machine has available
@@ -126,8 +141,16 @@ public class NodeServer {
 
     // sends a requested file to node
     void sendRequestFileToNode(String fileHash, String nodeIp) {
+        System.out.println("#Sending file request to node - nodeIp: " + nodeIp);
+        Response request = new Response();
+        request.setStatus(Constants.NODE_REQUEST_FILE_TO_NODE);
+        request.setFileHash(fileHash);
+        request.setSenderIp(ip);
+        sendToNode(request, nodeIp);
+    }
+
+    void sendToNode(Response response, String nodeIp) {
         try {
-            Response response = getFileResponseToNode(fileHash);
             String json = new Gson().toJson(response);
             byte[] sendData = json.getBytes(Charset.forName("utf8"));
 
