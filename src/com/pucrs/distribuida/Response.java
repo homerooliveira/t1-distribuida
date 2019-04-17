@@ -12,6 +12,7 @@ public class Response {
     private String fileName;
     private byte[] fileData;
     private String senderIp;
+    private String identifier;
 
     public Response(){}
 
@@ -58,6 +59,11 @@ public class Response {
     public String getSenderIp() { return senderIp; }
     public void setSenderIp(String senderIp) {
         this.senderIp = senderIp;
+    }
+
+    public String getidentifier() { return identifier; }
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
 

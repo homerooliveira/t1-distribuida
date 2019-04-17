@@ -68,17 +68,15 @@ public class MulticastServerMetal {
             InetAddress grupo = InetAddress.getByName("230.0.0.1");
             socket.joinGroup(grupo);
             while (true) {
-                byte[] entrada = new byte[512];
+                byte[] entrada = new byte[1024];
                 DatagramPacket pacote = new DatagramPacket(entrada, entrada.length);
                 socket.receive(pacote);
                 String recebido = new String(pacote.getData(), 0, pacote.getLength());
-                if (recebido.contains(IDENTIFIER)) { return; }
 
-                Gson gson = new Gson();
-                Response response = gson.fromJson(recebido, Response.class);
+                Response response = new Gson().fromJson(recebido, Response.class);
+                if (response.getidentifier().equals(this.IDENTIFIER)) { return; }
 
                 int status = response.getStatus();
-
                 if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_SUPER_NODE) {
                     System.out.println("Sending files to super node - fileName: " + response.getFileName());
                     sendResponseToSuperNode(response.getFileName(), response.getSenderIp());
@@ -93,6 +91,7 @@ public class MulticastServerMetal {
         try {
             Response request = new Response();
             request.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_SUPER_NODE);
+            request.setFileName(fileName);
 
             ArrayList<File> files = new ArrayList<File>();
             for (Node node : nodes.values()) {
