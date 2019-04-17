@@ -11,8 +11,6 @@ public class MulticastServerMetal {
 
     private final Map<String, Node> nodes = Collections.synchronizedMap(new HashMap<>());
 
-    private final String IDENTIFIER = UUID.randomUUID().toString();
-
     public static final int GROUP_PORT = 5000;
     public static final int DIRECT_PORT = 6000;
     private String ip;
@@ -74,11 +72,12 @@ public class MulticastServerMetal {
                 String recebido = new String(pacote.getData(), 0, pacote.getLength());
 
                 Response response = new Gson().fromJson(recebido, Response.class);
-                if (response.getidentifier().equals(this.IDENTIFIER)) { return; }
+
+                if (response.getSenderIp().equals(ip)) { continue; }
 
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_SUPER_NODE) {
-                    System.out.println("Sending files to super node - fileName: " + response.getFileName() + " - senderIp: " + response.getSenderIp());
+                    System.out.println("#Sending files to super node - fileName: " + response.getFileName() + " - senderIp: " + response.getSenderIp());
                     sendResponseToSuperNode(response.getFileName(), response.getSenderIp());
                 }
             }
@@ -93,7 +92,6 @@ public class MulticastServerMetal {
             request.setFileName(fileName);
             request.setSenderIp(superNodeIp);
             request.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_SUPER_NODE);
-
 
             ArrayList<File> files = new ArrayList<File>();
             for (Node node : nodes.values()) {
