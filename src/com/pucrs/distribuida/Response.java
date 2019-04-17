@@ -8,6 +8,7 @@ public class Response {
     private Node node;
     private ArrayList<File> files;
     private String fileRequasted;
+    private String ip;
 
     public Response(int status) {
         this.status = status;
@@ -29,6 +30,12 @@ public class Response {
         this.fileRequasted = fileRequasted;
     }
 
+    static Response makeResponseFromIp(String ip) {
+        Response response = new Response(Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE);
+        response.ip = ip;
+        return response;
+    }
+
     public int getStatus() {
         return status;
     }
@@ -45,11 +52,18 @@ public class Response {
         return fileRequasted;
     }
 
+    public String getIp() {
+        return ip;
+    }
+
     @Override
     public String toString() {
         return "Response{" +
                 "status=" + status +
                 ", node=" + node +
+                ", files=" + files +
+                ", fileRequasted='" + fileRequasted + '\'' +
+                ", ip='" + ip + '\'' +
                 '}';
     }
 }

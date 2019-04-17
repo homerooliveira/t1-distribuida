@@ -50,6 +50,7 @@ public class NodeServer {
     public void run() {
         sendFiles();
         new Thread(this::listen).start();
+        new Thread(this::sendSignal).start();
     }
 
     void listen() {
@@ -113,9 +114,6 @@ public class NodeServer {
 
             byte[] sendData = json.getBytes(Charset.forName("utf8"));
 
-            System.out.println(superNodeIp);
-            System.out.println(superNodePort);
-
             DatagramPacket sendPacket = new DatagramPacket(
                     sendData,
                     sendData.length,
@@ -162,6 +160,13 @@ public class NodeServer {
     }
 
     private void sendSignal() {
-        
+        while (true) {
+            sendResponse(Response.makeResponseFromIp(ip));
+            try {
+                Thread.sleep(5 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
