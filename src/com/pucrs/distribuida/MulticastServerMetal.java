@@ -5,10 +5,11 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MulticastServerMetal {
 
-    private Map<String, Node> nodes = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, Node> nodes = Collections.synchronizedMap(new HashMap<>());
 
     private final String IDENTIFIER = UUID.randomUUID().toString();
 
@@ -23,24 +24,29 @@ public class MulticastServerMetal {
         }).start();
 
         new Thread(() -> {
-            multicastServerMetal.removeDeadNodes();
+            while (true) {
+                multicastServerMetal.removeDeadNodes();
+            }
         }).start();
     }
 
-    private  void removeDeadNodes() {
+    private synchronized void removeDeadNodes() {
         try {
-            while (true){
             Thread.sleep(5 * 1000);
-            for (Node node : nodes.values()) {
-                if (node.isAlive()) {
-                    node.decreaseLifeCount();
-                    System.out.println("life count " + node.getLifeCount() + " of node - " + node.getIp());
-                } else {
-                    nodes.remove(node.getIp());
-                    System.out.println("node removed " + node.getIp());
-                }
+            synchronized (nodes) {
+                final Set<String> nodesToDelete = nodes.values()
+                        .stream()
+                        .peek(node -> {
+                            if (node.isAlive()) {
+                                node.decreaseLifeCount();
+                                System.out.println("life count " + node.getLifeCount() + " of node - " + node.getIp());
+                            }
+                        })
+                        .filter(node -> !node.isAlive())
+                        .map(Node::getIp)
+                        .collect(Collectors.toSet());
+                nodes.keySet().removeAll(nodesToDelete);
             }
-          }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

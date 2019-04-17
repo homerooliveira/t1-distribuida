@@ -53,6 +53,10 @@ public class NodeServer {
         new Thread(this::sendSignal).start();
     }
 
+    void listenKeyboard() {
+
+    }
+
     void listen() {
         DatagramSocket serverSocket;
         try {
@@ -74,14 +78,28 @@ public class NodeServer {
                 Response response = new Gson().fromJson(receivedMessage, Response.class);
 
                 if(response.getStatus() == Constants.NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
-                    System.out.println("Parse da lista");
-                } else if(response.getStatus() == Constants.NODE_REQUEST_FILE_TO_NODE) {
-                    System.out.println("recebe ip para enviar o arquivo");
+                    System.out.println("#Receiving files from super node.");
+                } else if(response.getStatus() == Constants.NODE_RECEIVE_FILE_REQUEST_FROM_NODE) {
+                    System.out.println("#Sending file to node - nodeIp: " + response.getSenderIp());
+                    Response fileResponse = getFileResponseToNode(response.getFileHash());
+                    sendToNode(fileResponse, response.getSenderIp());
+                } else if (response.getStatus() == Constants.NODE_RECEIVE_FILE_FROM_NODE) {
+                    System.out.println("#Receiving file from node.");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    Response getFileResponseToNode(String fileHash) {
+        for (PathData file : files) {
+            if (file.hash.equalsIgnoreCase(fileHash)) {
+                Response response = new Response("", file.data, ip);
+                return response;
+            }
+        }
+        return  null;
     }
 
     void sendFiles() {
@@ -95,6 +113,28 @@ public class NodeServer {
 
             Response response = new Response(Constants.NODE_SEND_FILES_TO_SUPER_NODE, new Node(ip, fileList));
             sendResponse(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void sendToNode(Response response, String nodeIp) {
+        try {
+            DatagramSocket socket = new DatagramSocket();
+            InetAddress address = InetAddress.getByName(nodeIp);
+
+            String json = new Gson().toJson(response);
+
+            byte[] sendData = json.getBytes(Charset.forName("utf8"));
+
+            DatagramPacket sendPacket = new DatagramPacket(
+                    sendData,
+                    sendData.length,
+                    address,
+                    DEFAULT_PORT);
+
+            socket.send(sendPacket);
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

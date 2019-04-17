@@ -10,6 +10,27 @@ public class Response {
     private String fileRequasted;
     private String ip;
 
+    private String fileHash;
+    private String fileName;
+    private byte[] fileData;
+
+    private String senderIp;
+
+    // NODE_SEND_FILE_TO_NODE
+    public Response(String fileName, byte[] fileData, String senderIp) {
+        this.status = Constants.NODE_SEND_FILE_TO_NODE;
+        this.fileName = fileName;
+        this.fileData = fileData;
+        this.senderIp = senderIp;
+    }
+
+    // NODE_REQUEST_FILE_TO_NODE
+    public Response(String fileHash, String senderIp) {
+        this.status = Constants.NODE_REQUEST_FILE_TO_NODE;
+        this.fileHash = fileHash;
+        this.senderIp = senderIp;
+    }
+
     public Response(int status) {
         this.status = status;
         this.node = null;
@@ -31,9 +52,13 @@ public class Response {
     }
 
     static Response makeResponseFromIp(String ip) {
-        Response response = new Response(Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE);
+        Response response = new Response(Constants.NODE_SEND_LIFE_SIGNAL_TO_SUPER_NODE);
         response.ip = ip;
         return response;
+    }
+
+    public String getFileHash() {
+        return fileHash;
     }
 
     public int getStatus() {
@@ -54,6 +79,10 @@ public class Response {
 
     public String getIp() {
         return ip;
+    }
+
+    public String getSenderIp() {
+        return senderIp;
     }
 
     @Override
