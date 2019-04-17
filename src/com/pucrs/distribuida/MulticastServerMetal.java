@@ -78,7 +78,7 @@ public class MulticastServerMetal {
 
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_SUPER_NODE) {
-                    System.out.println("Sending files to super node - fileName: " + response.getFileName());
+                    System.out.println("Sending files to super node - fileName: " + response.getFileName() + " - senderIp: " + response.getSenderIp());
                     sendResponseToSuperNode(response.getFileName(), response.getSenderIp());
                 }
             }
