@@ -147,7 +147,7 @@ public class NodeServer {
             String json = new Gson().toJson(response);
             byte[] sendData = json.getBytes(Charset.forName("utf8"));
 
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, MulticastServerMetal.DIRECT_PORT);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, MulticastServerMetal.DIRECT_NODE_PORT);
             DatagramSocket socket = new DatagramSocket();
             socket.send(sendPacket);
             socket.close();

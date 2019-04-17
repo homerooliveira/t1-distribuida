@@ -13,7 +13,8 @@ public class MulticastServerMetal {
     private final Map<String, ArrayList<File>> requests = Collections.synchronizedMap(new HashMap());
 
     public static final int GROUP_PORT = 5000;
-    public static final int DIRECT_PORT = 6000;
+    public static final int DIRECT_NODE_PORT = 6000;
+    public static final int DIRECT_SUPER_NODE_PORT = 7000;
     private String ip;
 
     public static void main(String[] args) throws IOException {
@@ -21,7 +22,7 @@ public class MulticastServerMetal {
         MulticastServerMetal multicastServerMetal = new MulticastServerMetal(ip);
 
         new Thread(() -> {
-            multicastServerMetal.listenSuperNodes();
+            multicastServerMetal.listenSuperNodesGroup();
         }).start();
 
         new Thread(() -> {
@@ -32,6 +33,10 @@ public class MulticastServerMetal {
             while (true) {
                 multicastServerMetal.removeDeadNodes();
             }
+        }).start();
+
+        new Thread(() -> {
+            multicastServerMetal.listenSuperNodeDirect();
         }).start();
     }
 
@@ -61,7 +66,7 @@ public class MulticastServerMetal {
         }
     }
 
-    public void listenSuperNodes() {
+    public void listenSuperNodesGroup() {
         try {
             MulticastSocket socket = new MulticastSocket(GROUP_PORT);
             InetAddress grupo = InetAddress.getByName("230.0.0.1");
@@ -110,7 +115,7 @@ public class MulticastServerMetal {
             byte[] sendData = json.getBytes();
 
             InetAddress address = InetAddress.getByName(superNodeIp);
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, DIRECT_PORT);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, DIRECT_SUPER_NODE_PORT);
             DatagramSocket socket = new DatagramSocket();
             socket.send(sendPacket);
             socket.close();
@@ -129,8 +134,9 @@ public class MulticastServerMetal {
         return request;
     }
 
-    Response getFilesToNode(String nodeIp) {
-        ArrayList<File> files = requests.get(nodeIp);
+    Response getFilesToNode(String requestIdentifier) {
+        ArrayList<File> files = requests.remove(requestIdentifier);
+        System.out.println("#getFilesToNode files = " + requests);
         Response response = new Response();
         response.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_NODE);
         response.setSenderIp(ip);
@@ -139,6 +145,7 @@ public class MulticastServerMetal {
     }
 
     void updateRequest(String requestIdentifier, ArrayList<File> receivedFiles) {
+        System.out.println("#updateRequest files:" + receivedFiles);
         ArrayList<File> files = requests.get(requestIdentifier);
         if (files == null) {
             requests.put(requestIdentifier, receivedFiles);
@@ -167,7 +174,7 @@ public class MulticastServerMetal {
 
     public void listenNodes() {
         try {
-            DatagramSocket serverSocket = new DatagramSocket(DIRECT_PORT);
+            DatagramSocket serverSocket = new DatagramSocket(DIRECT_NODE_PORT);
             final byte[] receiveData = new byte[1024];
 
             while (true) {
@@ -185,11 +192,9 @@ public class MulticastServerMetal {
                     System.out.println("#Receiving request from node - fileRequested: " + response.getFileName());
                     Response request = getFileRequest(response.getFileName());
                     sendToSuperNodes(request);
-                    Thread.sleep(5000);
+                    Thread.sleep(10000);
                     System.out.println("#Sending file to node.");
-
-                    sendToNode(getFilesToNode(response.getSenderIp()), response.getSenderIp());
-                    requests.remove(request.getRequestIdentifier());
+                    sendToNode(getFilesToNode(request.getRequestIdentifier()), response.getSenderIp());
                 } else if (status == Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE) {
                     final String senderIp = response.getSenderIp();
                     final Node node = nodes.get(senderIp);
@@ -197,12 +202,29 @@ public class MulticastServerMetal {
                         node.keepAlive();
 //                        System.out.println("reset count of " + node.getIp());
                     }
-                } else if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
-                    System.out.println("#Receiving files from super node - senderIp: " + response.getSenderIp());
-                    updateRequest(response.getRequestIdentifier(), response.getFiles());
-                    System.out.println(response);
                 }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void listenSuperNodeDirect() {
+        try {
+            DatagramSocket serverSocket = new DatagramSocket(DIRECT_SUPER_NODE_PORT);
+            final byte[] receiveData = new byte[1024];
+
+            while (true) {
+                final DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                serverSocket.receive(receivePacket);
+
+                final String receivedMessage = new String(receivePacket.getData(), receivePacket.getOffset(), receivePacket.getLength());
+                Response response = new Gson().fromJson(receivedMessage, Response.class);
+                int status = response.getStatus();
+                if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
+                    System.out.println("#Receiving files from super node \nsenderIp: " + response.getSenderIp() + "\nfiles: " + response.getFiles());
+                    updateRequest(response.getRequestIdentifier(), response.getFiles());
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
