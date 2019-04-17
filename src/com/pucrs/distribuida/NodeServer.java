@@ -17,12 +17,15 @@ import java.util.stream.Collectors;
 
 
 public class NodeServer {
-
     public static final int DEFAULT_PORT = 4000;
 
+    // current machine ip address
     private final String ip;
+    // ip address of the super node this machine communicates
     private final String superNodeIp;
+    // path where the files of this machine are
     private final String path;
+    // files on this machine
     private List<PathData> files;
 
     public static void main(String[] args) {
@@ -39,7 +42,6 @@ public class NodeServer {
         this.path = path;
     }
 
-
     public void run() {
         sendFiles();
         new Thread(this::listen).start();
@@ -47,6 +49,7 @@ public class NodeServer {
         new Thread(this::listenKeyboard).start();
     }
 
+    // listens the keyboard waiting for a file request
     void listenKeyboard() {
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -59,6 +62,7 @@ public class NodeServer {
         }
     }
 
+    // listens the direct communications with this node
     void listen() {
         try {
             DatagramSocket serverSocket = new DatagramSocket(DEFAULT_PORT);
@@ -79,8 +83,7 @@ public class NodeServer {
                     System.out.println(response);
                 } else if(response.getStatus() == Constants.NODE_RECEIVE_FILE_REQUEST_FROM_NODE) {
                     System.out.println("#Sending file to node - nodeIp: " + response.getSenderIp());
-                    Response fileResponse = getFileResponseToNode(response.getFileHash());
-                    sendToNode(fileResponse, response.getSenderIp());
+                    sendRequestFileToNode(response.getFileHash(), response.getSenderIp());
                 } else if (response.getStatus() == Constants.NODE_RECEIVE_FILE_FROM_NODE) {
                     System.out.println("#Receiving file from node.");
                 }
@@ -90,6 +93,7 @@ public class NodeServer {
         }
     }
 
+    // takes the file that will be sent in the response to the node that made the request
     Response getFileResponseToNode(String fileHash) {
         for (PathData file : files) {
             if (file.hash.equals(fileHash)) {
@@ -102,6 +106,7 @@ public class NodeServer {
         return  null;
     }
 
+    // sends to the super node a list of files that this machine has available
     void sendFiles() {
         try {
             readAllFiles();
@@ -112,21 +117,22 @@ public class NodeServer {
                     .collect(Collectors.toList());
 
             Response response = new Response(Constants.NODE_SEND_FILES_TO_SUPER_NODE, new Node(ip, fileList));
+            response.setSenderIp(ip);
             sendToSuperNode(response);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    void sendToNode(Response response, String nodeIp) {
+    // sends a requested file to node
+    void sendRequestFileToNode(String fileHash, String nodeIp) {
         try {
-            DatagramSocket socket = new DatagramSocket();
-            InetAddress address = InetAddress.getByName(nodeIp);
-
+            Response response = getFileResponseToNode(fileHash);
             String json = new Gson().toJson(response);
-
             byte[] sendData = json.getBytes(Charset.forName("utf8"));
 
+            DatagramSocket socket = new DatagramSocket();
+            InetAddress address = InetAddress.getByName(nodeIp);
             DatagramPacket sendPacket = new DatagramPacket(
                     sendData,
                     sendData.length,
@@ -140,6 +146,7 @@ public class NodeServer {
         }
     }
 
+    // sends actions to the super node
     void sendToSuperNode(Response response) {
         try {
             InetAddress address = InetAddress.getByName(superNodeIp);
@@ -156,6 +163,7 @@ public class NodeServer {
         }
     }
 
+    // reads the files of this machine
     private void readAllFiles() throws IOException {
         files = Files.list(Paths.get(path))
                 .filter(Files::isRegularFile)
@@ -189,6 +197,7 @@ public class NodeServer {
                 .collect(Collectors.toList());
     }
 
+    // sends a life signal to the super node
     private void sendSignal() {
         while (true) {
             Response response = new Response();

@@ -12,10 +12,14 @@ public class MulticastServerMetal {
     private final Map<String, Node> nodes = Collections.synchronizedMap(new HashMap());
     private final Map<String, ArrayList<File>> requests = Collections.synchronizedMap(new HashMap());
 
-    public static final int GROUP_PORT = 5000;
-    public static final int DIRECT_NODE_PORT = 6000;
-    public static final int DIRECT_SUPER_NODE_PORT = 7000;
+    // current machine ip address
     private String ip;
+    // socket port used in communications with other supernodes
+    public static final int GROUP_PORT = 5000;
+    // socket port used in direct communications with nodes
+    public static final int DIRECT_NODE_PORT = 6000;
+    // socket port used in direct communications with super nodes
+    public static final int DIRECT_SUPER_NODE_PORT = 7000;
 
     public static void main(String[] args) throws IOException {
         String ip = args[0];
@@ -66,6 +70,7 @@ public class MulticastServerMetal {
         }
     }
 
+    // listens for file requests from other super nodes
     public void listenSuperNodesGroup() {
         try {
             MulticastSocket socket = new MulticastSocket(GROUP_PORT);
@@ -83,7 +88,6 @@ public class MulticastServerMetal {
 
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_SUPER_NODE) {
-                    System.out.println("#Sending files to super node - fileName: " + response.getFileName() + " - senderIp: " + response.getSenderIp());
                     sendResponseToSuperNode(response.getRequestIdentifier(), response.getFileName(), response.getSenderIp());
                 }
             }
@@ -92,8 +96,10 @@ public class MulticastServerMetal {
         }
     }
 
+    // answers a super node with the files related to your request
     public void sendResponseToSuperNode(String requestIdentifier, String fileName, String superNodeIp) {
         try {
+            System.out.println("#Sending files to super node - superNodeIp: " + superNodeIp);
             Response request = new Response();
             request.setRequestIdentifier(requestIdentifier);
             request.setFileName(fileName);
@@ -124,6 +130,7 @@ public class MulticastServerMetal {
         }
     }
 
+    // creates a file request to send to another super node
     Response getFileRequest(String fileRequested) {
         Response request = new Response();
         request.setFileName(fileRequested);
@@ -136,7 +143,6 @@ public class MulticastServerMetal {
 
     Response getFilesToNode(String requestIdentifier) {
         ArrayList<File> files = requests.remove(requestIdentifier);
-        System.out.println("#getFilesToNode files = " + requests);
         Response response = new Response();
         response.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_NODE);
         response.setSenderIp(ip);
@@ -144,8 +150,8 @@ public class MulticastServerMetal {
         return response;
     }
 
+    // update the list of files of a request as new files pop up
     void updateRequest(String requestIdentifier, ArrayList<File> receivedFiles) {
-        System.out.println("#updateRequest files:" + receivedFiles);
         ArrayList<File> files = requests.get(requestIdentifier);
         if (files == null) {
             requests.put(requestIdentifier, receivedFiles);
@@ -157,6 +163,7 @@ public class MulticastServerMetal {
         }
     }
 
+    // sends file requests to super nodes
     public void sendToSuperNodes(Response request) {
         String json = new Gson().toJson(request);
         byte[] saida = json.getBytes();
@@ -172,6 +179,7 @@ public class MulticastServerMetal {
         }
     }
 
+    // listens for nodes actions
     public void listenNodes() {
         try {
             DatagramSocket serverSocket = new DatagramSocket(DIRECT_NODE_PORT);
@@ -185,16 +193,16 @@ public class MulticastServerMetal {
                 Response response = new Gson().fromJson(receivedMessage, Response.class);
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_NODE) {
-                    System.out.println("#Receiving files from node.");
+                    System.out.println("#Receiving files from node - nodeIp: " + response.getSenderIp());
                     Node node = response.getNode();
                     nodes.put(node.getIp(), node);
                 } else if (status == Constants.SUPER_NODE_RECEIVE_REQUEST_FROM_NODE) {
-                    System.out.println("#Receiving request from node - fileRequested: " + response.getFileName());
+                    System.out.println("#Receiving request from node - nodeIp: " + response.getSenderIp());
                     Response request = getFileRequest(response.getFileName());
                     sendToSuperNodes(request);
-                    Thread.sleep(10000);
-                    System.out.println("#Sending file to node.");
-                    sendToNode(getFilesToNode(request.getRequestIdentifier()), response.getSenderIp());
+                    Thread.sleep(5000);
+                    System.out.println("#Sending files to node - nodeIp: " + response.getSenderIp());
+                    sendFilesToNode(request.getRequestIdentifier(), response.getSenderIp());
                 } else if (status == Constants.SUPER_NODE_RECEIVE_LIFE_SIGNAL_FROM_NODE) {
                     final String senderIp = response.getSenderIp();
                     final Node node = nodes.get(senderIp);
@@ -209,6 +217,7 @@ public class MulticastServerMetal {
         }
     }
 
+    // listens when a super node sends a list of files
     public void listenSuperNodeDirect() {
         try {
             DatagramSocket serverSocket = new DatagramSocket(DIRECT_SUPER_NODE_PORT);
@@ -222,7 +231,7 @@ public class MulticastServerMetal {
                 Response response = new Gson().fromJson(receivedMessage, Response.class);
                 int status = response.getStatus();
                 if (status == Constants.SUPER_NODE_RECEIVE_FILES_FROM_SUPER_NODE) {
-                    System.out.println("#Receiving files from super node \nsenderIp: " + response.getSenderIp() + "\nfiles: " + response.getFiles());
+                    System.out.println("#Receiving files from super node - superNodeIp: " + response.getSenderIp());
                     updateRequest(response.getRequestIdentifier(), response.getFiles());
                 }
             }
@@ -231,8 +240,10 @@ public class MulticastServerMetal {
         }
     }
 
-    public void sendToNode(Response response, String nodeIp) {
+    // sends the known files to the node
+    public void sendFilesToNode(String requestIdentifier, String nodeIp) {
         try {
+            Response response = getFilesToNode(requestIdentifier);
             String json = new Gson().toJson(response);
             byte[] sendData = json.getBytes();
 
