@@ -53,15 +53,17 @@ public class NodeServer {
 
     // listens the keyboard waiting for a file request
     void listenKeyboard() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
+        new Thread(() -> {
+            Scanner scanner = new Scanner(System.in);
+//        while (true) {
             String fileName = scanner.nextLine();
             ResponseRequest request = new ResponseRequest();
             request.setSenderIp(ip);
             request.setStatus(Constants.NODE_SEND_REQUEST_TO_SUPER_NODE);
             request.setFileName(fileName);
             sendToSuperNode(request);
-        }
+//        }
+        }).start();
     }
 
     // listens the direct communications with this node
@@ -86,9 +88,17 @@ public class NodeServer {
                     if (files.isEmpty()) {
                         System.out.println("#Não foi encontrado nenhum arquivo com o nome especificado");
                     } else {
-                        File file = files.get(0);
+                        System.out.println("Choose file:");
+                        for (int index = 0; index < files.size(); index++) {
+                            File file = files.get(index);
+                            System.out.println(index + " - name: " + file.getName() + " hash: " + file.getHash() + " ip: " + file.getIp());
+                        }
+                        Scanner scanner = new Scanner(System.in);
+                        int option = scanner.nextInt();
+                        File file = files.get(option);
                         sendRequestFileToNode(file.getHash(), file.getIp());
                     }
+                    listenKeyboard();
                 } else if(response.getStatus() == Constants.NODE_RECEIVE_FILE_REQUEST_FROM_NODE) {
                     sendFileToNode(response.getFileHash(), response.getSenderIp());
                 } else if (response.getStatus() == Constants.NODE_RECEIVE_FILE_FROM_NODE) {

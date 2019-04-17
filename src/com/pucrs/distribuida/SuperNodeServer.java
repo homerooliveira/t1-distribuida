@@ -104,6 +104,7 @@ public class SuperNodeServer {
 
     // answers a super node with the files related to your request
     public void sendResponseToSuperNode(String requestIdentifier, String fileName, String superNodeIp) {
+        System.out.println("Ip homero = " + superNodeIp);
         try {
             System.out.println("#Sending files to super node - superNodeIp: " + superNodeIp);
             ResponseRequest request = new ResponseRequest();
@@ -113,12 +114,14 @@ public class SuperNodeServer {
             request.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_SUPER_NODE);
 
             ArrayList<File> files = filesForName(fileName);
+            System.out.println("files = " + files);
             request.setFiles(files);
 
             String json = new Gson().toJson(request);
             byte[] sendData = json.getBytes();
 
             InetAddress address = InetAddress.getByName(superNodeIp);
+
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, DIRECT_SUPER_NODE_PORT);
             DatagramSocket socket = new DatagramSocket();
             socket.send(sendPacket);
@@ -145,6 +148,7 @@ public class SuperNodeServer {
         response.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_NODE);
         response.setSenderIp(ip);
         response.setFiles(files);
+        System.out.println(files);
         return response;
     }
 
