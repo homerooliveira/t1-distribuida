@@ -90,8 +90,10 @@ public class MulticastServerMetal {
     public void sendResponseToSuperNode(String fileName, String superNodeIp) {
         try {
             Response request = new Response();
-            request.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_SUPER_NODE);
             request.setFileName(fileName);
+            request.setSenderIp(superNodeIp);
+            request.setStatus(Constants.SUPER_NODE_SEND_FILES_TO_SUPER_NODE);
+
 
             ArrayList<File> files = new ArrayList<File>();
             for (Node node : nodes.values()) {
