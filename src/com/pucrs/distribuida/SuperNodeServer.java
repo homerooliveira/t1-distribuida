@@ -51,7 +51,7 @@ public class SuperNodeServer {
                         .peek(node -> {
                             if (node.isAlive()) {
                                 node.decreaseLifeCount();
-//                                System.out.println("life count " + node.getLifeCount() + " of node - " + node.getIp());
+                                System.out.println("life count " + node.getLifeCount() + " of node - " + node.getIp());
                             }
                         })
                         .filter(node -> !node.isAlive())
@@ -209,7 +209,7 @@ public class SuperNodeServer {
                     final Node node = nodes.get(senderIp);
                     if (node != null) {
                         node.keepAlive();
-//                        System.out.println("reset count of " + node.getIp());
+                        System.out.println("reset count of " + node.getIp());
                     }
                 }
             }
